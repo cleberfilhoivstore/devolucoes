@@ -16,25 +16,13 @@ header h1 { font-size: 17px; font-weight: 600; }
 header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .wrap { padding: 16px; max-width: 480px; margin: 0 auto; }
 
-/* Upload — input visível e grande */
-.upload-label {
-  display: block;
-  width: 100%;
-  background: var(--card);
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 32px 16px;
-  text-align: center;
-  cursor: pointer;
-  margin-bottom: 14px;
-}
-.upload-label:active { background: #F0EEE8; }
-.upload-label .ico { font-size: 40px; display: block; margin-bottom: 10px; }
-.upload-label h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.upload-label p { font-size: 13px; color: var(--muted); }
-#fileInput { display: none; }
+.upload-zone { background: var(--card); border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 32px 16px; text-align: center; cursor: pointer; margin-bottom: 14px; }
+.upload-zone:active { background: #F0EEE8; }
+.upload-zone input { display: none; }
+.upload-zone .ico { font-size: 40px; display: block; margin-bottom: 10px; }
+.upload-zone h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.upload-zone p { font-size: 13px; color: var(--muted); }
 
-/* Fila */
 .item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
 .item-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .item-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
@@ -46,42 +34,28 @@ header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .badge-ok { background: #EAF3DE; color: #27500A; }
 .badge-err { background: #FCEBEB; color: #791F1F; }
 
-/* Spinner */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #E2E0D8; border-top-color: #633806; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 4px; }
 
-/* Campos */
 .fields { padding: 10px 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .f { display: flex; flex-direction: column; gap: 3px; }
 .f.full { grid-column: 1/-1; }
 .f label { font-size: 10px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
-.f input, .f select, .f textarea {
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 7px 9px; font-size: 14px; color: var(--text);
-  background: #fff; font-family: inherit; width: 100%; outline: none;
-  -webkit-appearance: none; appearance: none;
-}
+.f input, .f select, .f textarea { border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; font-size: 14px; color: var(--text); background: #fff; font-family: inherit; width: 100%; outline: none; -webkit-appearance: none; appearance: none; }
 .f input:focus, .f select:focus, .f textarea:focus { border-color: #1A1A1A; }
 .f textarea { resize: none; min-height: 60px; }
 .f.auto input { background: #F0F7EA; border-color: #97C459; color: #2a5a0a; }
 .f.auto label::after { content: " · auto"; color: #639922; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .sec { grid-column: 1/-1; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding-top: 6px; }
 
-/* Botão adicionar mais */
-.btn-more {
-  display: block; width: 100%; background: transparent;
-  border: 1px dashed var(--border); border-radius: var(--radius);
-  padding: 13px; font-size: 14px; color: var(--muted);
-  text-align: center; cursor: pointer; margin-bottom: 14px;
-}
+.btn-more { width: 100%; background: transparent; border: 1px dashed var(--border); border-radius: var(--radius); padding: 13px; font-size: 14px; color: var(--muted); text-align: center; cursor: pointer; margin-bottom: 14px; display: none; }
+.btn-more input { display: none; }
 
-/* Barra inferior */
-.bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 16px; }
+.bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 16px; display: none; }
 .btn-send { width: 100%; background: #1A1A1A; color: #fff; border: none; border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; }
 .btn-send:disabled { opacity: .35; }
 .bar-info { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
 
-/* Sucesso */
 .success { display: none; text-align: center; padding: 64px 20px; }
 .success .ico { font-size: 56px; margin-bottom: 16px; }
 .success h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
@@ -97,32 +71,31 @@ header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
 </header>
 
 <div class="wrap" id="mainWrap">
-
   <div style="height:14px"></div>
 
-  <label class="upload-label" id="uploadLabel">
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFile(event)">
     <span class="ico">📷</span>
     <h2>Fotografar etiqueta</h2>
     <p>Toque aqui para abrir câmera ou galeria</p>
-  </label>
-  <input type="file" id="fileInput" accept="image/*">
+  </div>
 
   <div id="queue"></div>
 
-  <label class="btn-more" id="btnMore" style="display:none">
+  <div class="btn-more" id="btnMore" onclick="document.getElementById('fileInput2').click()">
+    <input type="file" id="fileInput2" accept="image/*" capture="environment" onchange="handleFile(event)">
     + Adicionar outra etiqueta
-  </label>
-
+  </div>
 </div>
 
 <div class="success" id="successScreen">
   <div class="ico">✅</div>
   <h2 id="sucTitle">Devoluções registradas!</h2>
-  <p id="sucMsg">Dados enviados para a planilha.</p>
-  <button class="btn-novo" onclick="reset()">Registrar novas devoluções</button>
+  <p>Dados enviados para a planilha com sucesso.</p>
+  <button class="btn-novo" onclick="resetar()">Registrar novas devoluções</button>
 </div>
 
-<div class="bar" id="bar" style="display:none">
+<div class="bar" id="bar">
   <button class="btn-send" id="btnSend" disabled onclick="enviar()">Enviar para planilha →</button>
   <div class="bar-info" id="barInfo"></div>
 </div>
@@ -146,32 +119,19 @@ function hoje() {
 
 function detectarLoja(txt) {
   const t = (txt||'').toLowerCase();
-  for (const l of LOJAS) {
-    if (l.keys.some(k => t.includes(k))) return l;
-  }
+  for (const l of LOJAS) if (l.keys.some(k=>t.includes(k))) return l;
   return null;
 }
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 function upd(id,k,v){ const i=items.find(x=>x.id==id); if(i&&i.data) i.data[k]=v; }
 
-// Associa o label ao input dinamicamente para iOS
-const lbl = document.getElementById('uploadLabel');
-const inp = document.getElementById('fileInput');
-const lblMore = document.getElementById('btnMore');
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
 
-lbl.addEventListener('click', () => inp.click());
-lblMore.addEventListener('click', () => inp.click());
-
-inp.addEventListener('change', function() {
-  if (!this.files || !this.files.length) return;
-  const file = this.files[0];
-  processarArquivo(file);
-  this.value = '';
-});
-
-function processarArquivo(file) {
-  document.getElementById('uploadLabel').style.display = 'none';
+  document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('btnMore').style.display = 'block';
   document.getElementById('bar').style.display = 'block';
 
@@ -182,15 +142,14 @@ function processarArquivo(file) {
     const base64 = src.split(',')[1];
     const item = { id, file, base64, status: 'loading', data: null };
     items.push(item);
-    adicionarItemDOM(item, src);
+    adicionarDOM(item, src);
     extrair(item);
     atualizarBar();
   };
   reader.readAsDataURL(file);
 }
 
-function adicionarItemDOM(item, src) {
-  const queue = document.getElementById('queue');
+function adicionarDOM(item, src) {
   const div = document.createElement('div');
   div.className = 'item';
   div.id = 'item'+item.id;
@@ -205,7 +164,7 @@ function adicionarItemDOM(item, src) {
     </div>
     <div class="fields" id="fields${item.id}" style="display:none"></div>
   `;
-  queue.appendChild(div);
+  document.getElementById('queue').appendChild(div);
 }
 
 async function extrair(item) {
@@ -307,13 +266,10 @@ function atualizarBar() {
   const loading = items.filter(i=>i.status==='loading').length;
   const prontos = items.filter(i=>i.status!=='loading').length;
   const btn = document.getElementById('btnSend');
-  const info = document.getElementById('barInfo');
   btn.disabled = prontos===0 || loading>0;
-  if (loading>0) {
-    info.textContent = `Processando ${loading} etiqueta${loading>1?'s'}...`;
-  } else {
-    info.textContent = `${prontos} devolução${prontos>1?'ões':''} pronta${prontos>1?'s':''} para enviar`;
-  }
+  document.getElementById('barInfo').textContent = loading>0
+    ? `Processando ${loading} etiqueta${loading>1?'s'}...`
+    : `${prontos} devolução${prontos>1?'ões':''} pronta${prontos>1?'s':''} para enviar`;
 }
 
 async function enviar() {
@@ -334,10 +290,10 @@ async function enviar() {
   window.scrollTo(0,0);
 }
 
-function reset() {
+function resetar() {
   items=[];
   document.getElementById('queue').innerHTML='';
-  document.getElementById('uploadLabel').style.display='block';
+  document.getElementById('uploadZone').style.display='block';
   document.getElementById('btnMore').style.display='none';
   document.getElementById('bar').style.display='none';
   document.getElementById('mainWrap').style.display='block';
