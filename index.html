@@ -20,7 +20,6 @@
   /* Upload */
   .upload-zone { background: var(--card); border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 24px 20px; text-align: center; cursor: pointer; margin-bottom: 12px; }
   .upload-zone:active { background: #F0EEE8; }
-  .upload-zone input { display: none; }
   .upload-icon { font-size: 32px; margin-bottom: 8px; }
   .upload-zone h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .upload-zone p { font-size: 13px; color: var(--muted); }
@@ -90,18 +89,18 @@
 
   <div style="height:12px"></div>
 
-  <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-    <input type="file" id="fileInput" accept="image/*">
+  <label for="fileInput" class="upload-zone" id="dropzone">
+    <input type="file" id="fileInput" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;">
     <div class="upload-icon">📷</div>
-    <h2>Selecionar fotos das etiquetas</h2>
-    <p>Toque para abrir câmera ou galeria · várias de uma vez</p>
-  </div>
+    <h2>Selecionar foto da etiqueta</h2>
+    <p>Toque para abrir câmera ou galeria</p>
+  </label>
 
   <div class="queue" id="queue"></div>
 
-  <button class="btn-add-more" id="btnAddMore" style="display:none" onclick="document.getElementById('fileInput').click()">
+  <label for="fileInput" class="btn-add-more" id="btnAddMore" style="display:none">
     + Adicionar mais etiquetas
-  </button>
+  </label>
 
 </div>
 
@@ -148,18 +147,28 @@ function detectarLoja(texto) {
 function handleFiles(e) {
   const files = Array.from(e.target.files);
   if (!files.length) return;
+
   document.getElementById('dropzone').style.display = 'none';
   document.getElementById('btnAddMore').style.display = 'block';
   document.getElementById('submitBar').style.display = 'block';
 
   files.forEach(file => {
-    const id = Date.now() + Math.random();
+    const id = Date.now() + '_' + Math.floor(Math.random()*10000);
+    const objectUrl = URL.createObjectURL(file);
+    const item = { id, file, base64: null, objectUrl, status: 'loading', data: null };
+    items.push(item);
+    renderItem(item, objectUrl);
+
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const base64 = ev.target.result.split(',')[1];
-      const item = { id, file, base64, status: 'loading', data: null };
-      items.push(item);
-      renderItem(item, ev.target.result);
+    reader.onloadend = function() {
+      if (reader.error) {
+        item.status = 'error';
+        item.data = defaultData();
+        updateStatusError(item);
+        atualizarSubmit();
+        return;
+      }
+      item.base64 = reader.result.split(',')[1];
       extrairDados(item);
     };
     reader.readAsDataURL(file);
@@ -167,6 +176,22 @@ function handleFiles(e) {
 
   e.target.value = '';
   atualizarSubmit();
+}
+
+function defaultData() {
+  return {
+    dataDevolucao: hoje(), dataVenda: "", nomeCliente: "", numeroPedido: "",
+    rastreio: "", dataEtiqueta: "", loja: "", conta: "", marketplace: "Mercado Livre",
+    produto: "", tamanho: "", cor: "", valorVenda: "", motivo: "", oficina: "", observacoes: ""
+  };
+}
+
+function updateStatusError(item) {
+  const el = document.getElementById('status-' + item.id);
+  if (el) { el.className = 'queue-status status-error'; el.textContent = '⚠ Manual'; }
+  const info = document.getElementById('info-' + item.id);
+  if (info) info.textContent = 'Preencha os campos manualmente';
+  renderFields(item);
 }
 
 function renderItem(item, src) {
@@ -249,11 +274,7 @@ Instruções:
 
   } catch(err) {
     item.status = 'error';
-    item.data = {
-      dataDevolucao: hoje(), dataVenda: "", nomeCliente: "", numeroPedido: "",
-      rastreio: "", dataEtiqueta: "", loja: "", conta: "", marketplace: "Mercado Livre",
-      produto: "", tamanho: "", cor: "", valorVenda: "", motivo: "", oficina: "", observacoes: ""
-    };
+    item.data = defaultData();
     document.getElementById('status-' + item.id).className = 'queue-status status-error';
     document.getElementById('status-' + item.id).textContent = '⚠ Manual';
     document.getElementById('info-' + item.id).textContent = 'Preencha os campos manualmente';
