@@ -171,7 +171,6 @@ function adicionarDOM(item, src) {
 function extrair(item) {
   fetch(URL_SCRIPT, {
     method: 'POST',
-    mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imagem: item.base64, mimeType: item.mimeType })
   })
