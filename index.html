@@ -5,345 +5,288 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Registro de Devolução</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  :root {
-    --bg: #F7F6F3; --card: #FFFFFF; --border: #E2E0D8; --text: #1A1A1A;
-    --muted: #888580; --accent: #1A1A1A; --accent-text: #FFFFFF;
-    --radius: 12px; --radius-sm: 8px;
-  }
-  body { background: var(--bg); font-family: -apple-system, 'Helvetica Neue', sans-serif; color: var(--text); min-height: 100vh; padding-bottom: 60px; }
-  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 20px; position: sticky; top: 0; z-index: 10; }
-  header h1 { font-size: 16px; font-weight: 600; }
-  header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .container { padding: 14px; max-width: 480px; margin: 0 auto; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F7F6F3; --card: #fff; --border: #E2E0D8;
+  --text: #1A1A1A; --muted: #888580; --radius: 12px;
+}
+body { background: var(--bg); font-family: -apple-system, 'Helvetica Neue', sans-serif; color: var(--text); padding-bottom: 100px; }
+header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 16px; }
+header h1 { font-size: 17px; font-weight: 600; }
+header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.wrap { padding: 16px; max-width: 480px; margin: 0 auto; }
 
-  /* Upload */
-  .upload-zone { background: var(--card); border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 24px 20px; text-align: center; cursor: pointer; margin-bottom: 12px; }
-  .upload-zone:active { background: #F0EEE8; }
-  .upload-icon { font-size: 32px; margin-bottom: 8px; }
-  .upload-zone h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .upload-zone p { font-size: 13px; color: var(--muted); }
+/* Upload — input visível e grande */
+.upload-label {
+  display: block;
+  width: 100%;
+  background: var(--card);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px 16px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+.upload-label:active { background: #F0EEE8; }
+.upload-label .ico { font-size: 40px; display: block; margin-bottom: 10px; }
+.upload-label h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.upload-label p { font-size: 13px; color: var(--muted); }
+#fileInput { display: none; }
 
-  /* Queue */
-  .queue { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
-  .queue-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .queue-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
-  .queue-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-  .queue-info { flex: 1; min-width: 0; }
-  .queue-info h4 { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .queue-info p { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .queue-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; font-weight: 500; }
-  .status-loading { background: #FAEEDA; color: #633806; }
-  .status-done { background: #EAF3DE; color: #27500A; }
-  .status-error { background: #FCEBEB; color: #791F1F; }
-  .status-pending { background: #F1EFE8; color: #5F5E5A; }
+/* Fila */
+.item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.item-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.item-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.item-info { flex: 1; }
+.item-info b { font-size: 13px; font-weight: 500; display: block; }
+.item-info span { font-size: 12px; color: var(--muted); }
+.badge { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+.badge-loading { background: #FAEEDA; color: #633806; }
+.badge-ok { background: #EAF3DE; color: #27500A; }
+.badge-err { background: #FCEBEB; color: #791F1F; }
 
-  /* Fields dentro do queue item */
-  .fields-grid { padding: 10px 14px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .field { display: flex; flex-direction: column; gap: 3px; }
-  .field.full { grid-column: 1 / -1; }
-  .field label { font-size: 10px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
-  .field input, .field select, .field textarea {
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 7px 9px; font-size: 13px; color: var(--text);
-    background: var(--bg); font-family: inherit; -webkit-appearance: none; outline: none; width: 100%;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: #fff; }
-  .field textarea { resize: none; min-height: 60px; line-height: 1.4; }
-  .field-auto input { background: #F0F7EA; border-color: #97C459; color: #27500A; }
-  .field-auto label::after { content: " ✓ auto"; color: #639922; font-weight: 400; text-transform: none; letter-spacing: 0; }
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #E2E0D8; border-top-color: #633806; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 4px; }
 
-  /* Spinner */
-  .spinner { width: 16px; height: 16px; border: 2px solid #E2E0D8; border-top-color: #633806; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; vertical-align: middle; margin-right: 4px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* Campos */
+.fields { padding: 10px 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.f { display: flex; flex-direction: column; gap: 3px; }
+.f.full { grid-column: 1/-1; }
+.f label { font-size: 10px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+.f input, .f select, .f textarea {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 9px; font-size: 14px; color: var(--text);
+  background: #fff; font-family: inherit; width: 100%; outline: none;
+  -webkit-appearance: none; appearance: none;
+}
+.f input:focus, .f select:focus, .f textarea:focus { border-color: #1A1A1A; }
+.f textarea { resize: none; min-height: 60px; }
+.f.auto input { background: #F0F7EA; border-color: #97C459; color: #2a5a0a; }
+.f.auto label::after { content: " · auto"; color: #639922; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.sec { grid-column: 1/-1; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding-top: 6px; }
 
-  /* Add more */
-  .btn-add-more { width: 100%; background: transparent; border: 1px dashed var(--border); border-radius: var(--radius); padding: 12px; font-size: 13px; color: var(--muted); cursor: pointer; margin-bottom: 12px; }
-  .btn-add-more:active { background: var(--bg); }
+/* Botão adicionar mais */
+.btn-more {
+  display: block; width: 100%; background: transparent;
+  border: 1px dashed var(--border); border-radius: var(--radius);
+  padding: 13px; font-size: 14px; color: var(--muted);
+  text-align: center; cursor: pointer; margin-bottom: 14px;
+}
 
-  /* Submit */
-  .submit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 16px; z-index: 10; }
-  .btn-submit { width: 100%; background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: -0.2px; }
-  .btn-submit:disabled { opacity: 0.35; cursor: default; }
-  .btn-submit:active:not(:disabled) { opacity: 0.85; }
-  .submit-count { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
+/* Barra inferior */
+.bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 16px; }
+.btn-send { width: 100%; background: #1A1A1A; color: #fff; border: none; border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.btn-send:disabled { opacity: .35; }
+.bar-info { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
 
-  /* Success */
-  .success-screen { display: none; text-align: center; padding: 60px 20px; }
-  .success-screen .icon { font-size: 52px; margin-bottom: 16px; }
-  .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  .success-screen p { font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
-  .btn-novo { background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius); padding: 16px 32px; font-size: 16px; font-weight: 600; cursor: pointer; }
-
-  .section-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 4px 0 6px 2px; }
+/* Sucesso */
+.success { display: none; text-align: center; padding: 64px 20px; }
+.success .ico { font-size: 56px; margin-bottom: 16px; }
+.success h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.success p { font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+.btn-novo { background: #1A1A1A; color: #fff; border: none; border-radius: var(--radius); padding: 16px 32px; font-size: 16px; font-weight: 600; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>📦 Registro de Devolução</h1>
-  <p>Selecione uma ou mais fotos de etiquetas</p>
+  <p>Fotografe a etiqueta para preencher automaticamente</p>
 </header>
 
-<div class="container" id="mainForm">
+<div class="wrap" id="mainWrap">
 
-  <div style="height:12px"></div>
+  <div style="height:14px"></div>
 
-  <label for="fileInput" class="upload-zone" id="dropzone">
-    <input type="file" id="fileInput" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;">
-    <div class="upload-icon">📷</div>
-    <h2>Selecionar foto da etiqueta</h2>
-    <p>Toque para abrir câmera ou galeria</p>
+  <label class="upload-label" id="uploadLabel">
+    <span class="ico">📷</span>
+    <h2>Fotografar etiqueta</h2>
+    <p>Toque aqui para abrir câmera ou galeria</p>
   </label>
+  <input type="file" id="fileInput" accept="image/*">
 
-  <div class="queue" id="queue"></div>
+  <div id="queue"></div>
 
-  <label for="fileInput" class="btn-add-more" id="btnAddMore" style="display:none">
-    + Adicionar mais etiquetas
+  <label class="btn-more" id="btnMore" style="display:none">
+    + Adicionar outra etiqueta
   </label>
 
 </div>
 
-<div class="success-screen" id="successScreen">
-  <div class="icon">✅</div>
-  <h2 id="successTitle">Devoluções registradas!</h2>
-  <p id="successMsg">Os dados foram enviados para a planilha com sucesso.</p>
-  <button class="btn-novo" onclick="novoRegistro()">Registrar novas devoluções</button>
+<div class="success" id="successScreen">
+  <div class="ico">✅</div>
+  <h2 id="sucTitle">Devoluções registradas!</h2>
+  <p id="sucMsg">Dados enviados para a planilha.</p>
+  <button class="btn-novo" onclick="reset()">Registrar novas devoluções</button>
 </div>
 
-<div class="submit-bar" id="submitBar" style="display:none">
-  <button class="btn-submit" id="btnSubmit" onclick="enviarTudo()" disabled>Enviar para planilha →</button>
-  <div class="submit-count" id="submitCount"></div>
+<div class="bar" id="bar" style="display:none">
+  <button class="btn-send" id="btnSend" disabled onclick="enviar()">Enviar para planilha →</button>
+  <div class="bar-info" id="barInfo"></div>
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6or6cMy7oQOTTFMOzBAzSzoL4GS0ol5NizqUrwtMfljw2JU5ZRUDg6h0-tegvYL6v3A/exec";
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby6or6cMy7oQOTTFMOzBAzSzoL4GS0ol5NizqUrwtMfljw2JU5ZRUDg6h0-tegvYL6v3A/exec";
 
-const LOJAS = {
-  "csf_store": { nome: "CSF Store", conta: "Meli 4" },
-  "cleber de souza filho": { nome: "CSF Store", conta: "Meli 4" },
-  "csouza_clothing": { nome: "CSouza Clothing", conta: "Meli 2" },
-  "iv store": { nome: "IV Store Oficial", conta: "Meli 2" },
-  "ivstore": { nome: "IV Store Oficial", conta: "Meli 2" },
-  "ivianastore": { nome: "IViana Store", conta: "Meli 3" },
-  "inaiara viana": { nome: "IViana Store", conta: "Meli 3" },
-};
+const LOJAS = [
+  { keys: ["csf_store","csf store"], nome: "CSF Store", conta: "Meli 4" },
+  { keys: ["csouza_clothing","csouza clothing"], nome: "CSouza Clothing", conta: "Meli 2" },
+  { keys: ["iv store","ivstore","iv_store"], nome: "IV Store Oficial", conta: "Meli 2" },
+  { keys: ["ivianastore","iviana store","inaiara viana"], nome: "IViana Store", conta: "Meli 3" },
+];
 
 let items = [];
 
 function hoje() {
   const d = new Date();
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  return [d.getDate(),d.getMonth()+1,d.getFullYear()].map((n,i)=>i<2?String(n).padStart(2,'0'):n).join('/');
 }
 
-function detectarLoja(texto) {
-  const t = texto.toLowerCase();
-  for (const [key, val] of Object.entries(LOJAS)) {
-    if (t.includes(key)) return val;
+function detectarLoja(txt) {
+  const t = (txt||'').toLowerCase();
+  for (const l of LOJAS) {
+    if (l.keys.some(k => t.includes(k))) return l;
   }
   return null;
 }
 
-function handleFiles(e) {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function upd(id,k,v){ const i=items.find(x=>x.id==id); if(i&&i.data) i.data[k]=v; }
 
-  document.getElementById('dropzone').style.display = 'none';
-  document.getElementById('btnAddMore').style.display = 'block';
-  document.getElementById('submitBar').style.display = 'block';
+// Associa o label ao input dinamicamente para iOS
+const lbl = document.getElementById('uploadLabel');
+const inp = document.getElementById('fileInput');
+const lblMore = document.getElementById('btnMore');
 
-  files.forEach(file => {
-    const id = Date.now() + '_' + Math.floor(Math.random()*10000);
-    const objectUrl = URL.createObjectURL(file);
-    const item = { id, file, base64: null, objectUrl, status: 'loading', data: null };
+lbl.addEventListener('click', () => inp.click());
+lblMore.addEventListener('click', () => inp.click());
+
+inp.addEventListener('change', function() {
+  if (!this.files || !this.files.length) return;
+  const file = this.files[0];
+  processarArquivo(file);
+  this.value = '';
+});
+
+function processarArquivo(file) {
+  document.getElementById('uploadLabel').style.display = 'none';
+  document.getElementById('btnMore').style.display = 'block';
+  document.getElementById('bar').style.display = 'block';
+
+  const id = Date.now();
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const src = e.target.result;
+    const base64 = src.split(',')[1];
+    const item = { id, file, base64, status: 'loading', data: null };
     items.push(item);
-    renderItem(item, objectUrl);
-
-    const reader = new FileReader();
-    reader.onloadend = function() {
-      if (reader.error) {
-        item.status = 'error';
-        item.data = defaultData();
-        updateStatusError(item);
-        atualizarSubmit();
-        return;
-      }
-      item.base64 = reader.result.split(',')[1];
-      extrairDados(item);
-    };
-    reader.readAsDataURL(file);
-  });
-
-  e.target.value = '';
-  atualizarSubmit();
-}
-
-function defaultData() {
-  return {
-    dataDevolucao: hoje(), dataVenda: "", nomeCliente: "", numeroPedido: "",
-    rastreio: "", dataEtiqueta: "", loja: "", conta: "", marketplace: "Mercado Livre",
-    produto: "", tamanho: "", cor: "", valorVenda: "", motivo: "", oficina: "", observacoes: ""
+    adicionarItemDOM(item, src);
+    extrair(item);
+    atualizarBar();
   };
+  reader.readAsDataURL(file);
 }
 
-function updateStatusError(item) {
-  const el = document.getElementById('status-' + item.id);
-  if (el) { el.className = 'queue-status status-error'; el.textContent = '⚠ Manual'; }
-  const info = document.getElementById('info-' + item.id);
-  if (info) info.textContent = 'Preencha os campos manualmente';
-  renderFields(item);
-}
-
-function renderItem(item, src) {
+function adicionarItemDOM(item, src) {
   const queue = document.getElementById('queue');
   const div = document.createElement('div');
-  div.className = 'queue-item';
-  div.id = 'item-' + item.id;
+  div.className = 'item';
+  div.id = 'item'+item.id;
   div.innerHTML = `
-    <div class="queue-header">
-      <img class="queue-thumb" src="${src}" alt="">
-      <div class="queue-info">
-        <h4>${item.file.name}</h4>
-        <p id="info-${item.id}">Lendo etiqueta...</p>
+    <div class="item-head">
+      <img class="item-thumb" src="${src}">
+      <div class="item-info">
+        <b id="nome${item.id}">Lendo etiqueta...</b>
+        <span id="sub${item.id}">aguarde</span>
       </div>
-      <span class="queue-status status-loading" id="status-${item.id}"><span class="spinner"></span>Lendo</span>
+      <span class="badge badge-loading" id="badge${item.id}"><span class="spin"></span>Lendo</span>
     </div>
-    <div class="fields-grid" id="fields-${item.id}" style="display:none"></div>
+    <div class="fields" id="fields${item.id}" style="display:none"></div>
   `;
   queue.appendChild(div);
 }
 
-async function extrairDados(item) {
+async function extrair(item) {
   try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
+        max_tokens: 800,
         messages: [{
           role: "user",
           content: [
-            { type: "image", source: { type: "base64", media_type: item.file.type || "image/jpeg", data: item.base64 } },
-            { type: "text", text: `Esta é uma etiqueta de envio do Mercado Livre. Leia todos os textos visíveis mesmo que a etiqueta esteja torta ou invertida, e extraia os dados. Responda SOMENTE com JSON válido, sem markdown, sem texto extra:
-{"nomeCliente":"","numeroPedido":"","rastreio":"","data":"","loja":"","marketplace":"Mercado Livre"}
-
-Instruções:
-- nomeCliente: nome do destinatário (cliente que comprou), não o remetente/loja
-- numeroPedido: Pack ID ou Ref ID ou número de pedido visível
-- rastreio: número abaixo do código de barras (sequência numérica longa, ex: 47233655087)
-- data: data visível na etiqueta no formato DD/MM/AAAA
-- loja: nome da loja/remetente exatamente como aparece na etiqueta (ex: "Cleber de Souza Filho (CSF_STORE)" ou "IV STORE COMÉRCIO DE ROUPAS LTDA")
-- Se algum campo não estiver visível, deixe como string vazia` }
+            { type: "image", source: { type: "base64", media_type: item.file.type||"image/jpeg", data: item.base64 } },
+            { type: "text", text: `Etiqueta de envio do Mercado Livre. Leia mesmo que esteja torta, amassada ou invertida. Responda APENAS JSON sem markdown:
+{"nomeCliente":"","numeroPedido":"","rastreio":"","dataEtiqueta":"","loja":""}
+- nomeCliente: destinatário (quem comprou), não a loja remetente
+- numeroPedido: Pack ID ou Ref ID
+- rastreio: número longo abaixo do código de barras
+- dataEtiqueta: data no formato DD/MM/AAAA
+- loja: nome do remetente/loja exatamente como aparece` }
           ]
         }]
       })
     });
-
-    const data = await resp.json();
-    const text = data.content.map(i => i.text || "").join("");
-    const clean = text.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
-
-    const loja = detectarLoja(parsed.loja || "");
-
+    const json = await res.json();
+    const txt = json.content.map(x=>x.text||'').join('').replace(/```json|```/g,'').trim();
+    const p = JSON.parse(txt);
+    const loja = detectarLoja(p.loja);
     item.status = 'done';
     item.data = {
-      dataDevolucao: hoje(),
-      dataVenda: "",
-      nomeCliente: parsed.nomeCliente || "",
-      numeroPedido: parsed.numeroPedido || "",
-      rastreio: parsed.rastreio || "",
-      dataEtiqueta: parsed.data || "",
-      loja: loja ? loja.nome : (parsed.loja || ""),
-      conta: loja ? loja.conta : "",
-      marketplace: "Mercado Livre",
-      produto: "",
-      tamanho: "",
-      cor: "",
-      valorVenda: "",
-      motivo: "",
-      oficina: "",
-      observacoes: ""
+      dataDevolucao: hoje(), dataVenda: '',
+      nomeCliente: p.nomeCliente||'', numeroPedido: p.numeroPedido||'',
+      rastreio: p.rastreio||'', dataEtiqueta: p.dataEtiqueta||'',
+      loja: loja ? loja.nome : (p.loja||''),
+      conta: loja ? loja.conta : '',
+      marketplace: 'Mercado Livre',
+      produto:'', tamanho:'', cor:'', valorVenda:'', motivo:'', oficina:'', observacoes:''
     };
-
-    document.getElementById('status-' + item.id).className = 'queue-status status-done';
-    document.getElementById('status-' + item.id).textContent = '✓ Lido';
-    document.getElementById('info-' + item.id).textContent = parsed.nomeCliente || 'Cliente identificado';
-    renderFields(item);
-
-  } catch(err) {
+    document.getElementById('badge'+item.id).className='badge badge-ok';
+    document.getElementById('badge'+item.id).textContent='✓ Lido';
+    document.getElementById('nome'+item.id).textContent = p.nomeCliente||'Cliente identificado';
+    document.getElementById('sub'+item.id).textContent = loja ? loja.nome+' · '+loja.conta : (p.loja||'');
+    renderCampos(item);
+  } catch(e) {
     item.status = 'error';
-    item.data = defaultData();
-    document.getElementById('status-' + item.id).className = 'queue-status status-error';
-    document.getElementById('status-' + item.id).textContent = '⚠ Manual';
-    document.getElementById('info-' + item.id).textContent = 'Preencha os campos manualmente';
-    renderFields(item);
+    item.data = {
+      dataDevolucao:hoje(), dataVenda:'', nomeCliente:'', numeroPedido:'',
+      rastreio:'', dataEtiqueta:'', loja:'', conta:'', marketplace:'Mercado Livre',
+      produto:'', tamanho:'', cor:'', valorVenda:'', motivo:'', oficina:'', observacoes:''
+    };
+    document.getElementById('badge'+item.id).className='badge badge-err';
+    document.getElementById('badge'+item.id).textContent='⚠ Manual';
+    document.getElementById('nome'+item.id).textContent='Preencha manualmente';
+    document.getElementById('sub'+item.id).textContent='Não foi possível ler';
+    renderCampos(item);
   }
-
-  atualizarSubmit();
+  atualizarBar();
 }
 
-function renderFields(item) {
+function renderCampos(item) {
   const d = item.data;
-  const wrap = document.getElementById('fields-' + item.id);
+  const a = v => v ? 'f auto' : 'f';
+  const wrap = document.getElementById('fields'+item.id);
   wrap.style.display = 'grid';
-
-  const auto = (val) => val ? 'field-auto' : '';
-
   wrap.innerHTML = `
-    <div class="section-label full" style="grid-column:1/-1; font-size:10px; color:#888; padding: 4px 0 2px; text-transform:uppercase; letter-spacing:.06em;">Da etiqueta</div>
-
-    <div class="field full ${auto(d.nomeCliente)}">
-      <label>Nome do cliente</label>
-      <input type="text" value="${esc(d.nomeCliente)}" onchange="update('${item.id}','nomeCliente',this.value)">
-    </div>
-    <div class="field ${auto(d.numeroPedido)}">
-      <label>Nº pedido</label>
-      <input type="text" value="${esc(d.numeroPedido)}" onchange="update('${item.id}','numeroPedido',this.value)">
-    </div>
-    <div class="field ${auto(d.rastreio)}">
-      <label>Rastreio</label>
-      <input type="text" value="${esc(d.rastreio)}" onchange="update('${item.id}','rastreio',this.value)">
-    </div>
-    <div class="field ${auto(d.loja)}">
-      <label>Loja</label>
-      <input type="text" value="${esc(d.loja)}" onchange="update('${item.id}','loja',this.value)">
-    </div>
-    <div class="field ${auto(d.conta)}">
-      <label>Conta Meli</label>
-      <input type="text" value="${esc(d.conta)}" onchange="update('${item.id}','conta',this.value)">
-    </div>
-    <div class="field field-auto">
-      <label>Data devolução</label>
-      <input type="text" value="${esc(d.dataDevolucao)}" onchange="update('${item.id}','dataDevolucao',this.value)">
-    </div>
-    <div class="field ${auto(d.dataEtiqueta)}">
-      <label>Data etiqueta</label>
-      <input type="text" value="${esc(d.dataEtiqueta)}" placeholder="DD/MM/AAAA" onchange="update('${item.id}','dataEtiqueta',this.value)">
-    </div>
-
-    <div class="section-label" style="grid-column:1/-1; font-size:10px; color:#888; padding: 8px 0 2px; text-transform:uppercase; letter-spacing:.06em;">Preencher manualmente</div>
-
-    <div class="field full">
-      <label>Produto</label>
-      <input type="text" placeholder="Ex: Camiseta Básica" onchange="update('${item.id}','produto',this.value)">
-    </div>
-    <div class="field">
-      <label>Tamanho</label>
-      <input type="text" placeholder="P / M / G" onchange="update('${item.id}','tamanho',this.value)">
-    </div>
-    <div class="field">
-      <label>Cor</label>
-      <input type="text" placeholder="Ex: Preto" onchange="update('${item.id}','cor',this.value)">
-    </div>
-    <div class="field">
-      <label>Valor da venda (R$)</label>
-      <input type="text" placeholder="0,00" onchange="update('${item.id}','valorVenda',this.value)">
-    </div>
-    <div class="field">
-      <label>Motivo</label>
-      <select onchange="update('${item.id}','motivo',this.value)">
+    <div class="sec">Da etiqueta</div>
+    <div class="${a(d.nomeCliente)} full"><label>Nome do cliente</label><input value="${esc(d.nomeCliente)}" onchange="upd(${item.id},'nomeCliente',this.value)"></div>
+    <div class="${a(d.numeroPedido)}"><label>Nº pedido</label><input value="${esc(d.numeroPedido)}" onchange="upd(${item.id},'numeroPedido',this.value)"></div>
+    <div class="${a(d.rastreio)}"><label>Rastreio</label><input value="${esc(d.rastreio)}" onchange="upd(${item.id},'rastreio',this.value)"></div>
+    <div class="${a(d.loja)}"><label>Loja</label><input value="${esc(d.loja)}" onchange="upd(${item.id},'loja',this.value)"></div>
+    <div class="${a(d.conta)}"><label>Conta Meli</label><input value="${esc(d.conta)}" onchange="upd(${item.id},'conta',this.value)"></div>
+    <div class="f auto"><label>Data devolução</label><input value="${esc(d.dataDevolucao)}" onchange="upd(${item.id},'dataDevolucao',this.value)"></div>
+    <div class="${a(d.dataEtiqueta)}"><label>Data etiqueta</label><input value="${esc(d.dataEtiqueta)}" placeholder="DD/MM/AAAA" onchange="upd(${item.id},'dataEtiqueta',this.value)"></div>
+    <div class="sec">Preencher manualmente</div>
+    <div class="f full"><label>Produto</label><input placeholder="Ex: Camiseta Básica" onchange="upd(${item.id},'produto',this.value)"></div>
+    <div class="f"><label>Tamanho</label><input placeholder="P/M/G/GG" onchange="upd(${item.id},'tamanho',this.value)"></div>
+    <div class="f"><label>Cor</label><input placeholder="Ex: Preto" onchange="upd(${item.id},'cor',this.value)"></div>
+    <div class="f"><label>Valor (R$)</label><input placeholder="0,00" onchange="upd(${item.id},'valorVenda',this.value)"></div>
+    <div class="f"><label>Motivo</label>
+      <select onchange="upd(${item.id},'motivo',this.value)">
         <option value="">Selecionar…</option>
         <option>Produto com defeito</option>
         <option>Produto diferente do anunciado</option>
@@ -355,79 +298,52 @@ function renderFields(item) {
         <option>Outro</option>
       </select>
     </div>
-    <div class="field full">
-      <label>Oficina</label>
-      <input type="text" placeholder="Nome da oficina" onchange="update('${item.id}','oficina',this.value)">
-    </div>
-    <div class="field full">
-      <label>Observações</label>
-      <textarea placeholder="Detalhes adicionais..." onchange="update('${item.id}','observacoes',this.value)"></textarea>
-    </div>
+    <div class="f full"><label>Oficina</label><input placeholder="Nome da oficina" onchange="upd(${item.id},'oficina',this.value)"></div>
+    <div class="f full"><label>Observações</label><textarea placeholder="Detalhes adicionais..." onchange="upd(${item.id},'observacoes',this.value)"></textarea></div>
   `;
 }
 
-function esc(str) { return (str||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-function update(id, field, value) {
-  const item = items.find(i => String(i.id) === String(id));
-  if (item && item.data) item.data[field] = value;
-}
-
-function atualizarSubmit() {
-  const prontos = items.filter(i => i.status === 'done' || i.status === 'error').length;
-  const total = items.length;
-  const loading = items.filter(i => i.status === 'loading').length;
-  const btn = document.getElementById('btnSubmit');
-  const count = document.getElementById('submitCount');
-  btn.disabled = prontos === 0 || loading > 0;
-  if (loading > 0) {
-    count.textContent = `Processando ${loading} etiqueta${loading>1?'s'}...`;
+function atualizarBar() {
+  const loading = items.filter(i=>i.status==='loading').length;
+  const prontos = items.filter(i=>i.status!=='loading').length;
+  const btn = document.getElementById('btnSend');
+  const info = document.getElementById('barInfo');
+  btn.disabled = prontos===0 || loading>0;
+  if (loading>0) {
+    info.textContent = `Processando ${loading} etiqueta${loading>1?'s'}...`;
   } else {
-    count.textContent = `${prontos} devolução${prontos>1?'ões':''} pronta${prontos>1?'s':''} para enviar`;
+    info.textContent = `${prontos} devolução${prontos>1?'ões':''} pronta${prontos>1?'s':''} para enviar`;
   }
 }
 
-async function enviarTudo() {
-  const btn = document.getElementById('btnSubmit');
-  btn.disabled = true;
-  btn.textContent = 'Enviando...';
-
-  const prontos = items.filter(i => i.status === 'done' || i.status === 'error');
-  let enviados = 0;
-
+async function enviar() {
+  const btn = document.getElementById('btnSend');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  const prontos = items.filter(i=>i.status!=='loading');
+  let ok = 0;
   for (const item of prontos) {
     try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item.data)
-      });
-      enviados++;
-    } catch(e) {}
+      await fetch(URL_SCRIPT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.data) });
+      ok++;
+    } catch(e){}
   }
-
-  document.getElementById('mainForm').style.display = 'none';
-  document.getElementById('submitBar').style.display = 'none';
-  document.getElementById('successScreen').style.display = 'block';
-  document.getElementById('successTitle').textContent = `${enviados} devolução${enviados>1?'ões':''} registrada${enviados>1?'s':''}!`;
-  document.getElementById('successMsg').textContent = `Os dados foram enviados para a planilha com sucesso.`;
+  document.getElementById('mainWrap').style.display='none';
+  document.getElementById('bar').style.display='none';
+  document.getElementById('successScreen').style.display='block';
+  document.getElementById('sucTitle').textContent=`${ok} devolução${ok>1?'ões':''} registrada${ok>1?'s':''}!`;
   window.scrollTo(0,0);
 }
 
-function novoRegistro() {
-  items = [];
-  document.getElementById('queue').innerHTML = '';
-  document.getElementById('dropzone').style.display = 'block';
-  document.getElementById('btnAddMore').style.display = 'none';
-  document.getElementById('submitBar').style.display = 'none';
-  document.getElementById('mainForm').style.display = 'block';
-  document.getElementById('successScreen').style.display = 'none';
+function reset() {
+  items=[];
+  document.getElementById('queue').innerHTML='';
+  document.getElementById('uploadLabel').style.display='block';
+  document.getElementById('btnMore').style.display='none';
+  document.getElementById('bar').style.display='none';
+  document.getElementById('mainWrap').style.display='block';
+  document.getElementById('successScreen').style.display='none';
   window.scrollTo(0,0);
 }
-
-document.getElementById('fileInput').addEventListener('change', function(e) {
-  handleFiles(e);
-});
 </script>
 </body>
 </html>
