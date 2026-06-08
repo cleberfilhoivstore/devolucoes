@@ -74,7 +74,7 @@ header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
   <div style="height:14px"></div>
 
   <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+    <input type="file" id="fileInput" accept="image/*">
     <span class="ico">📷</span>
     <h2>Fotografar etiqueta</h2>
     <p>Toque aqui para abrir câmera ou galeria</p>
@@ -83,7 +83,7 @@ header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
   <div id="queue"></div>
 
   <div class="btn-more" id="btnMore" onclick="document.getElementById('fileInput2').click()">
-    <input type="file" id="fileInput2" accept="image/*" onchange="handleFile(event)">
+    <input type="file" id="fileInput2" accept="image/*">
     + Adicionar outra etiqueta
   </div>
 </div>
@@ -181,9 +181,9 @@ async function extrair(item) {
             { type: "image", source: { type: "base64", media_type: item.file.type||"image/jpeg", data: item.base64 } },
             { type: "text", text: `Etiqueta de envio do Mercado Livre. Leia mesmo que esteja torta, amassada ou invertida. Responda APENAS JSON sem markdown:
 {"nomeCliente":"","numeroPedido":"","rastreio":"","dataEtiqueta":"","loja":""}
-- nomeCliente: destinatário (quem comprou), não a loja remetente
+- nomeCliente: destinatario (quem comprou), nao a loja remetente
 - numeroPedido: Pack ID ou Ref ID
-- rastreio: número longo abaixo do código de barras
+- rastreio: numero longo abaixo do codigo de barras
 - dataEtiqueta: data no formato DD/MM/AAAA
 - loja: nome do remetente/loja exatamente como aparece` }
           ]
@@ -205,9 +205,9 @@ async function extrair(item) {
       produto:'', tamanho:'', cor:'', valorVenda:'', motivo:'', oficina:'', observacoes:''
     };
     document.getElementById('badge'+item.id).className='badge badge-ok';
-    document.getElementById('badge'+item.id).textContent='✓ Lido';
+    document.getElementById('badge'+item.id).textContent='v Lido';
     document.getElementById('nome'+item.id).textContent = p.nomeCliente||'Cliente identificado';
-    document.getElementById('sub'+item.id).textContent = loja ? loja.nome+' · '+loja.conta : (p.loja||'');
+    document.getElementById('sub'+item.id).textContent = loja ? loja.nome+' - '+loja.conta : (p.loja||'');
     renderCampos(item);
   } catch(e) {
     item.status = 'error';
@@ -217,9 +217,9 @@ async function extrair(item) {
       produto:'', tamanho:'', cor:'', valorVenda:'', motivo:'', oficina:'', observacoes:''
     };
     document.getElementById('badge'+item.id).className='badge badge-err';
-    document.getElementById('badge'+item.id).textContent='⚠ Manual';
+    document.getElementById('badge'+item.id).textContent='! Manual';
     document.getElementById('nome'+item.id).textContent='Preencha manualmente';
-    document.getElementById('sub'+item.id).textContent='Não foi possível ler';
+    document.getElementById('sub'+item.id).textContent='Nao foi possivel ler';
     renderCampos(item);
   }
   atualizarBar();
@@ -233,32 +233,32 @@ function renderCampos(item) {
   wrap.innerHTML = `
     <div class="sec">Da etiqueta</div>
     <div class="${a(d.nomeCliente)} full"><label>Nome do cliente</label><input value="${esc(d.nomeCliente)}" onchange="upd(${item.id},'nomeCliente',this.value)"></div>
-    <div class="${a(d.numeroPedido)}"><label>Nº pedido</label><input value="${esc(d.numeroPedido)}" onchange="upd(${item.id},'numeroPedido',this.value)"></div>
+    <div class="${a(d.numeroPedido)}"><label>No pedido</label><input value="${esc(d.numeroPedido)}" onchange="upd(${item.id},'numeroPedido',this.value)"></div>
     <div class="${a(d.rastreio)}"><label>Rastreio</label><input value="${esc(d.rastreio)}" onchange="upd(${item.id},'rastreio',this.value)"></div>
     <div class="${a(d.loja)}"><label>Loja</label><input value="${esc(d.loja)}" onchange="upd(${item.id},'loja',this.value)"></div>
     <div class="${a(d.conta)}"><label>Conta Meli</label><input value="${esc(d.conta)}" onchange="upd(${item.id},'conta',this.value)"></div>
-    <div class="f auto"><label>Data devolução</label><input value="${esc(d.dataDevolucao)}" onchange="upd(${item.id},'dataDevolucao',this.value)"></div>
+    <div class="f auto"><label>Data devolucao</label><input value="${esc(d.dataDevolucao)}" onchange="upd(${item.id},'dataDevolucao',this.value)"></div>
     <div class="${a(d.dataEtiqueta)}"><label>Data etiqueta</label><input value="${esc(d.dataEtiqueta)}" placeholder="DD/MM/AAAA" onchange="upd(${item.id},'dataEtiqueta',this.value)"></div>
     <div class="sec">Preencher manualmente</div>
-    <div class="f full"><label>Produto</label><input placeholder="Ex: Camiseta Básica" onchange="upd(${item.id},'produto',this.value)"></div>
+    <div class="f full"><label>Produto</label><input placeholder="Ex: Camiseta Basica" onchange="upd(${item.id},'produto',this.value)"></div>
     <div class="f"><label>Tamanho</label><input placeholder="P/M/G/GG" onchange="upd(${item.id},'tamanho',this.value)"></div>
     <div class="f"><label>Cor</label><input placeholder="Ex: Preto" onchange="upd(${item.id},'cor',this.value)"></div>
     <div class="f"><label>Valor (R$)</label><input placeholder="0,00" onchange="upd(${item.id},'valorVenda',this.value)"></div>
     <div class="f"><label>Motivo</label>
       <select onchange="upd(${item.id},'motivo',this.value)">
-        <option value="">Selecionar…</option>
+        <option value="">Selecionar...</option>
         <option>Produto com defeito</option>
         <option>Produto diferente do anunciado</option>
         <option>Tamanho errado</option>
         <option>Cor diferente</option>
         <option>Produto danificado no transporte</option>
-        <option>Desistência da compra</option>
-        <option>Produto não chegou</option>
+        <option>Desistencia da compra</option>
+        <option>Produto nao chegou</option>
         <option>Outro</option>
       </select>
     </div>
     <div class="f full"><label>Oficina</label><input placeholder="Nome da oficina" onchange="upd(${item.id},'oficina',this.value)"></div>
-    <div class="f full"><label>Observações</label><textarea placeholder="Detalhes adicionais..." onchange="upd(${item.id},'observacoes',this.value)"></textarea></div>
+    <div class="f full"><label>Observacoes</label><textarea placeholder="Detalhes adicionais..." onchange="upd(${item.id},'observacoes',this.value)"></textarea></div>
   `;
 }
 
@@ -268,8 +268,8 @@ function atualizarBar() {
   const btn = document.getElementById('btnSend');
   btn.disabled = prontos===0 || loading>0;
   document.getElementById('barInfo').textContent = loading>0
-    ? `Processando ${loading} etiqueta${loading>1?'s'}...`
-    : `${prontos} devolução${prontos>1?'ões':''} pronta${prontos>1?'s':''} para enviar`;
+    ? 'Processando ' + loading + ' etiqueta' + (loading>1?'s':'') + '...'
+    : prontos + ' devolucao' + (prontos>1?'es':'') + ' pronta' + (prontos>1?'s':'') + ' para enviar';
 }
 
 async function enviar() {
@@ -286,7 +286,7 @@ async function enviar() {
   document.getElementById('mainWrap').style.display='none';
   document.getElementById('bar').style.display='none';
   document.getElementById('successScreen').style.display='block';
-  document.getElementById('sucTitle').textContent=`${ok} devolução${ok>1?'ões':''} registrada${ok>1?'s':''}!`;
+  document.getElementById('sucTitle').textContent= ok + ' devolucao' + (ok>1?'es':'') + ' registrada' + (ok>1?'s':'') + '!';
   window.scrollTo(0,0);
 }
 
@@ -300,6 +300,9 @@ function resetar() {
   document.getElementById('successScreen').style.display='none';
   window.scrollTo(0,0);
 }
+
+document.getElementById('fileInput').addEventListener('input', handleFile);
+document.getElementById('fileInput2').addEventListener('input', handleFile);
 </script>
 </body>
 </html>
