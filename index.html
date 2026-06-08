@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Registro de Devolução</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #F7F6F3;
+    --card: #FFFFFF;
+    --border: #E2E0D8;
+    --border-focus: #1A1A1A;
+    --text: #1A1A1A;
+    --muted: #888580;
+    --accent: #1A1A1A;
+    --accent-text: #FFFFFF;
+    --success-bg: #EAF3DE;
+    --success-text: #27500A;
+    --error-bg: #FCEBEB;
+    --error-text: #791F1F;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  header p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+  /* Upload zone */
+  .upload-zone {
+    background: var(--card);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 12px;
+  }
+  .upload-zone:active { background: #F0EEE8; }
+  .upload-zone input { display: none; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-zone h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .upload-zone p { font-size: 13px; color: var(--muted); }
+
+  .preview-wrap {
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    display: none;
+  }
+  .preview-wrap img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+  .preview-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .preview-actions span { font-size: 13px; color: var(--muted); }
+  .btn-link { background: none; border: none; font-size: 13px; color: var(--accent); cursor: pointer; font-weight: 500; padding: 0; }
+
+  /* Extract button */
+  .btn-extract {
+    width: 100%;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    letter-spacing: -0.2px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.15s;
+  }
+  .btn-extract:active { opacity: 0.8; }
+
+  /* Loading */
+  .loading-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    text-align: center;
+    margin-bottom: 12px;
+    display: none;
+    border: 1px solid var(--border);
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-card p { font-size: 14px; color: var(--muted); }
+
+  /* Section card */
+  .section {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-icon { font-size: 16px; }
+  .section-header h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .field { padding: 0 16px; border-bottom: 1px solid var(--border); }
+  .field:last-child { border-bottom: none; }
+  .field label { display: block; font-size: 11px; color: var(--muted); padding-top: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: var(--text);
+    background: transparent;
+    padding: 6px 0 10px;
+    font-family: inherit;
+    -webkit-appearance: none;
+  }
+  .field textarea { resize: none; min-height: 72px; line-height: 1.5; }
+  .field select { cursor: pointer; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .field-row .field { border-right: 1px solid var(--border); }
+  .field-row .field:last-child { border-right: none; }
+
+  /* Error */
+  .error-card {
+    background: var(--error-bg);
+    border: 1px solid #F09595;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--error-text);
+    margin-bottom: 12px;
+    display: none;
+    line-height: 1.5;
+  }
+
+  /* Submit */
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius);
+    padding: 18px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: -0.3px;
+    margin-top: 4px;
+    transition: opacity 0.15s;
+  }
+  .btn-submit:active { opacity: 0.8; }
+  .btn-submit:disabled { opacity: 0.4; cursor: default; }
+
+  /* Success screen */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .success-icon { font-size: 56px; margin-bottom: 16px; }
+  .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.4px; }
+  .success-screen p { font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+  .btn-novo {
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .hint { font-size: 12px; color: var(--muted); text-align: center; padding: 8px 0 4px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📦 Registro de Devolução</h1>
+  <p>Tire foto da etiqueta para preencher automaticamente</p>
+</header>
+
+<div class="container" id="main-form">
+
+  <!-- Upload -->
+  <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFile(event)">
+    <div class="upload-icon">📷</div>
+    <h2>Fotografar etiqueta</h2>
+    <p>Toque para abrir a câmera ou galeria</p>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-wrap" id="previewWrap">
+    <img id="previewImg" alt="Etiqueta fotografada">
+    <div class="preview-actions">
+      <span id="previewLabel">Etiqueta carregada</span>
+      <button class="btn-link" onclick="trocarFoto()">Trocar foto</button>
+    </div>
+  </div>
+
+  <!-- Botão extrair -->
+  <button class="btn-extract" id="btnExtract" onclick="extrairDados()">
+    ✨ Extrair dados da etiqueta
+  </button>
+
+  <!-- Loading -->
+  <div class="loading-card" id="loadingCard">
+    <div class="spinner"></div>
+    <p>Lendo etiqueta com IA…</p>
+  </div>
+
+  <!-- Erro -->
+  <div class="error-card" id="errorCard"></div>
+
+  <!-- Formulário -->
+  <div id="formFields" style="display:none">
+
+    <div class="section">
+      <div class="section-header"><span class="section-icon">📅</span><h3>Datas</h3></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Data Devolução</label>
+          <input type="text" id="f-dataDevolucao" placeholder="DD/MM/AAAA">
+        </div>
+        <div class="field">
+          <label>Data da Venda</label>
+          <input type="text" id="f-dataVenda" placeholder="DD/MM/AAAA">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><span class="section-icon">🛒</span><h3>Pedido</h3></div>
+      <div class="field">
+        <label>Nº do Pedido</label>
+        <input type="text" id="f-numeroPedido" placeholder="Ex: 12345678">
+      </div>
+      <div class="field">
+        <label>Marketplace</label>
+        <select id="f-marketplace">
+          <option value="">Selecionar…</option>
+          <option>Shopee</option>
+          <option>Mercado Livre</option>
+          <option>Amazon</option>
+          <option>Magalu</option>
+          <option>Americanas</option>
+          <option>Shein</option>
+          <option>Site próprio</option>
+          <option>Loja física</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nome do Cliente</label>
+        <input type="text" id="f-nomeCliente" placeholder="Nome completo">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><span class="section-icon">👕</span><h3>Produto</h3></div>
+      <div class="field">
+        <label>Produto</label>
+        <input type="text" id="f-produto" placeholder="Ex: Camiseta Básica">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Tamanho</label>
+          <input type="text" id="f-tamanho" placeholder="P / M / G…">
+        </div>
+        <div class="field">
+          <label>Cor</label>
+          <input type="text" id="f-cor" placeholder="Ex: Preto">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Quantidade</label>
+          <input type="number" id="f-quantidade" placeholder="1" min="1">
+        </div>
+        <div class="field">
+          <label>Valor da Venda (R$)</label>
+          <input type="text" id="f-valorVenda" placeholder="0,00">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><span class="section-icon">🔧</span><h3>Devolução</h3></div>
+      <div class="field">
+        <label>Motivo</label>
+        <select id="f-motivo">
+          <option value="">Selecionar…</option>
+          <option>Produto com defeito</option>
+          <option>Produto diferente do anunciado</option>
+          <option>Tamanho errado</option>
+          <option>Cor diferente</option>
+          <option>Produto danificado no transporte</option>
+          <option>Desistência da compra</option>
+          <option>Produto não chegou</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Oficina</label>
+        <input type="text" id="f-oficina" placeholder="Nome da oficina responsável">
+      </div>
+      <div class="field">
+        <label>Observações</label>
+        <textarea id="f-observacoes" placeholder="Detalhes adicionais, condição do produto, etc."></textarea>
+      </div>
+    </div>
+
+    <p class="hint">Revise os dados antes de enviar.<br>Campos em branco podem ser preenchidos manualmente.</p>
+
+    <button class="btn-submit" id="btnSubmit" onclick="enviar()">Enviar registro →</button>
+
+  </div>
+</div>
+
+<!-- Tela de sucesso -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <h2>Devolução registrada!</h2>
+  <p>Os dados foram enviados para a planilha com sucesso.</p>
+  <button class="btn-novo" onclick="novoRegistro()">Registrar outra devolução</button>
+</div>
+
+<script>
+// ⚠️ SUBSTITUA pela URL do seu Apps Script após implantar
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6or6cMy7oQOTTFMOzBAzSzoL4GS0ol5NizqUrwtMfljw2JU5ZRUDg6h0-tegvYL6v3A/exec";
+
+let imagemBase64 = null;
+let imagemMimeType = "image/jpeg";
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  imagemMimeType = file.type || "image/jpeg";
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    imagemBase64 = ev.target.result.split(',')[1];
+    document.getElementById('previewImg').src = ev.target.result;
+    document.getElementById('previewWrap').style.display = 'block';
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('btnExtract').style.display = 'flex';
+    document.getElementById('formFields').style.display = 'none';
+    document.getElementById('errorCard').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function trocarFoto() {
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileInput').click();
+}
+
+async function extrairDados() {
+  document.getElementById('btnExtract').style.display = 'none';
+  document.getElementById('loadingCard').style.display = 'block';
+  document.getElementById('errorCard').style.display = 'none';
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: imagemMimeType, data: imagemBase64 }
+            },
+            {
+              type: "text",
+              text: `Analise esta etiqueta ou documento de devolução/logística e extraia os dados visíveis. Responda SOMENTE com JSON válido, sem markdown, sem texto extra. Use exatamente esta estrutura:
+{"dataDevolucao":"","dataVenda":"","numeroPedido":"","marketplace":"","nomeCliente":"","motivo":"","quantidade":"","produto":"","tamanho":"","cor":"","valorVenda":"","oficina":"","observacoes":""}
+
+Regras:
+- Datas no formato DD/MM/AAAA
+- Valor somente números e vírgula, ex: 89,90
+- Quantidade somente número
+- Se o campo não estiver visível, deixe como string vazia
+- Para marketplace, identifique pelo logo ou texto se visível
+- Para motivo, use exatamente uma dessas opções se possível: "Produto com defeito", "Produto diferente do anunciado", "Tamanho errado", "Cor diferente", "Produto danificado no transporte", "Desistência da compra", "Produto não chegou", "Outro"
+- Para observacoes, inclua qualquer informação relevante não coberta pelos outros campos`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await resp.json();
+    const text = data.content.map(i => i.text || "").join("");
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('f-dataDevolucao').value = parsed.dataDevolucao || "";
+    document.getElementById('f-dataVenda').value = parsed.dataVenda || "";
+    document.getElementById('f-numeroPedido').value = parsed.numeroPedido || "";
+    setSelect('f-marketplace', parsed.marketplace);
+    document.getElementById('f-nomeCliente').value = parsed.nomeCliente || "";
+    setSelect('f-motivo', parsed.motivo);
+    document.getElementById('f-quantidade').value = parsed.quantidade || "";
+    document.getElementById('f-produto').value = parsed.produto || "";
+    document.getElementById('f-tamanho').value = parsed.tamanho || "";
+    document.getElementById('f-cor').value = parsed.cor || "";
+    document.getElementById('f-valorVenda').value = parsed.valorVenda || "";
+    document.getElementById('f-oficina').value = parsed.oficina || "";
+    document.getElementById('f-observacoes').value = parsed.observacoes || "";
+
+    document.getElementById('loadingCard').style.display = 'none';
+    document.getElementById('formFields').style.display = 'block';
+
+    setTimeout(() => {
+      document.getElementById('formFields').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+
+  } catch(err) {
+    document.getElementById('loadingCard').style.display = 'none';
+    document.getElementById('errorCard').style.display = 'block';
+    document.getElementById('errorCard').textContent = "Não foi possível ler a etiqueta automaticamente. Preencha os campos manualmente abaixo.";
+    document.getElementById('btnExtract').style.display = 'none';
+    document.getElementById('formFields').style.display = 'block';
+  }
+}
+
+function setSelect(id, value) {
+  const sel = document.getElementById(id);
+  for (let opt of sel.options) {
+    if (opt.value === value || opt.text === value) {
+      sel.value = opt.value;
+      return;
+    }
+  }
+}
+
+async function enviar() {
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = "Enviando…";
+
+  const payload = {
+    dataDevolucao:  document.getElementById('f-dataDevolucao').value,
+    dataVenda:      document.getElementById('f-dataVenda').value,
+    numeroPedido:   document.getElementById('f-numeroPedido').value,
+    marketplace:    document.getElementById('f-marketplace').value,
+    nomeCliente:    document.getElementById('f-nomeCliente').value,
+    motivo:         document.getElementById('f-motivo').value,
+    quantidade:     document.getElementById('f-quantidade').value,
+    produto:        document.getElementById('f-produto').value,
+    tamanho:        document.getElementById('f-tamanho').value,
+    cor:            document.getElementById('f-cor').value,
+    valorVenda:     document.getElementById('f-valorVenda').value,
+    oficina:        document.getElementById('f-oficina').value,
+    observacoes:    document.getElementById('f-observacoes').value
+  };
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('main-form').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    window.scrollTo(0, 0);
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = "Enviar registro →";
+    document.getElementById('errorCard').style.display = 'block';
+    document.getElementById('errorCard').textContent = "Erro ao enviar. Verifique sua conexão e tente novamente.";
+  }
+}
+
+function novoRegistro() {
+  document.getElementById('main-form').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('dropzone').style.display = 'block';
+  document.getElementById('previewWrap').style.display = 'none';
+  document.getElementById('btnExtract').style.display = 'none';
+  document.getElementById('loadingCard').style.display = 'none';
+  document.getElementById('formFields').style.display = 'none';
+  document.getElementById('errorCard').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  imagemBase64 = null;
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
