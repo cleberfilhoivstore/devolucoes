@@ -91,7 +91,7 @@
   <div style="height:12px"></div>
 
   <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-    <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(event)">
+    <input type="file" id="fileInput" accept="image/*" multiple>
     <div class="upload-icon">📷</div>
     <h2>Selecionar fotos das etiquetas</h2>
     <p>Toque para abrir câmera ou galeria · várias de uma vez</p>
@@ -403,6 +403,10 @@ function novoRegistro() {
   document.getElementById('successScreen').style.display = 'none';
   window.scrollTo(0,0);
 }
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  handleFiles(e);
+});
 </script>
 </body>
 </html>
