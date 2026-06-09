@@ -447,29 +447,9 @@ function tentarEnviar() {
     cor: primeiroItem.cor
   };
 
-  fetch(URL_SCRIPT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(res) {
-    btn.disabled = false;
-    btn.textContent = "Enviar para planilha";
-    if (res.encontrado && res.alertas && res.alertas.length > 0) {
-      var html = "";
-      for (var i=0; i<res.alertas.length; i++) html += "<li>"+res.alertas[i]+"</li>";
-      document.getElementById("alertaMsgs").innerHTML = html;
-      document.getElementById("overlay").classList.add("show");
-    } else {
-      confirmarEnvio();
-    }
-  })
-  .catch(function() {
-    btn.disabled = false;
-    btn.textContent = "Enviar para planilha";
-    confirmarEnvio();
-  });
+  btn.disabled = false;
+  btn.textContent = "Enviar para planilha";
+  confirmarEnvio();
 }
 
 function fecharAlerta() {
