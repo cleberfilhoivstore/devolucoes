@@ -474,14 +474,32 @@ function confirmarEnvio() {
     fotos: fotos.map(function(f){ return { base64:f.base64, mime:f.mime }; })
   };
 
-  fetch(URL_SCRIPT, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(function() { mostrarSucesso(); })
-  .catch(function() { mostrarSucesso(); });
+  // Envia via form nativo para evitar CORS
+  var form = document.createElement("form");
+  form.method = "POST";
+  form.action = URL_SCRIPT;
+  form.target = "iframe-envio";
+  form.style.display = "none";
+
+  var input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "payload";
+  input.value = JSON.stringify(payload);
+  form.appendChild(input);
+  document.body.appendChild(form);
+
+  var iframe = document.createElement("iframe");
+  iframe.name = "iframe-envio";
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+
+  iframe.onload = function() {
+    setTimeout(function() { mostrarSucesso(); }, 500);
+  };
+
+  form.submit();
+  // Fallback caso onload não dispare
+  setTimeout(function() { mostrarSucesso(); }, 4000);
 }
 
 function mostrarSucesso() {
