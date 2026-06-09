@@ -474,32 +474,21 @@ function confirmarEnvio() {
     fotos: fotos.map(function(f){ return { base64:f.base64, mime:f.mime }; })
   };
 
-  // Envia via form nativo para evitar CORS
-  var form = document.createElement("form");
-  form.method = "POST";
-  form.action = URL_SCRIPT;
-  form.target = "iframe-envio";
-  form.style.display = "none";
-
-  var input = document.createElement("input");
-  input.type = "hidden";
-  input.name = "payload";
-  input.value = JSON.stringify(payload);
-  form.appendChild(input);
-  document.body.appendChild(form);
-
-  var iframe = document.createElement("iframe");
-  iframe.name = "iframe-envio";
-  iframe.style.display = "none";
-  document.body.appendChild(iframe);
-
-  iframe.onload = function() {
-    setTimeout(function() { mostrarSucesso(); }, 500);
+  // Usa text/plain para evitar preflight CORS
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", URL_SCRIPT, true);
+  xhr.setRequestHeader("Content-Type", "text/plain");
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      mostrarSucesso();
+    }
   };
-
-  form.submit();
-  // Fallback caso onload não dispare
-  setTimeout(function() { mostrarSucesso(); }, 4000);
+  xhr.onerror = function() {
+    mostrarSucesso();
+  };
+  xhr.send(JSON.stringify(payload));
+  // Fallback
+  setTimeout(function() { mostrarSucesso(); }, 8000);
 }
 
 function mostrarSucesso() {
